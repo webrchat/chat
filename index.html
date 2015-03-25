@@ -40,20 +40,45 @@
         <script src="simplewebrtc.bundle.js"></script>
         <script>
             // grab the room from the URL
-            var room = location.search && location.search.split('?')[1];
+          var room = location.search &amp;&amp; location.search.split('?')[1];
+ 
+// This object will take in an array of XirSys STUN / TURN servers
+// and override the original peerConnectionConfig object
+var peerConnectionConfig;
+ 
+$.ajax({
+    type: "POST",
+    url: "https://api.xirsys.com/getIceServers",
+    data: {
+        ident: "abdel",
+        secret: "d9f0126d-1d28-46f1-8907-b1f97b9c81ff",
+        domain: "www.montestpfe2-abf.rhcloud.com",
+        application: "default",
+        room: room,
+        secure: 1
+    },
+    success: function (data, status) {
+        // data.d is where the iceServers object lives
+        peerConnectionConfig = data.d;
+        console.log(peerConnectionConfig);
+    },
+    async: false
+});
 
-            // create our webrtc connection
-            var webrtc = new SimpleWebRTC({
-                // the id/element dom element that will hold "our" video
-                localVideoEl: 'localVideo',
-                // the id/element dom element that will hold remote videos
-                remoteVideosEl: '',
-                // immediately ask for camera access
-                autoRequestMedia: true,
-                debug: false,
-                detectSpeakingEvents: true,
-                autoAdjustMic: false
-            });
+// Create our WebRTC connection
+var webrtc = new SimpleWebRTC({
+    // The DOM element that will hold "our" video
+    localVideoEl: 'localVideo',
+    // The DOM element that will hold remote videos
+    remoteVideosEl: '',
+    // Immediately ask for camera access
+    autoRequestMedia: true,
+    debug: false,
+    detectSpeakingEvents: true,
+    autoAdjustMic: false,
+    // Add the new peerConnectionConfig object
+    peerConnectionConfig: peerConnectionConfig
+});
 
             // when it's ready, join if we got a room from the URL
             webrtc.on('readyToCall', function () {
